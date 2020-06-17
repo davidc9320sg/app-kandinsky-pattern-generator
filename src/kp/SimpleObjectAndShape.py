@@ -88,7 +88,7 @@ class twoPairsOnlyOneWithSameColor (KandinskyTruthInterfce):
       return false
 
    def  humanDescription (self):
-      return "contains two pairs of objects with the same shape, oene with equal color, one with different color"
+      return "contains two pairs of objects with the same shape, one with equal color, one with different color"
 
    def _gt (self, kf):
        

@@ -1,8 +1,8 @@
 import abc
-
+from .KandinskyUniverse import KandinskyUniverse
 class KandinskyTruthInterfce:
 
-   def __init__(self, universe, min = 4, max = 4 ):
+   def __init__(self, universe: KandinskyUniverse, min = 4, max = 4 ):
       self.u = universe
       self.min = min
       self.max = max
