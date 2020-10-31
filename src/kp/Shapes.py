@@ -164,7 +164,7 @@ class MyUniverse(KandinskyUniverse):
     """
     def __init__(self):
         super(MyUniverse, self).__init__(
-            kandinsky_shapes=[Square, Circle],
+            kandinsky_shapes=[Square, Circle, Triangle],
             kandinsky_colors=[
                 'red', 'blue', 'yellow', 'orchid', 'coral', 'aqua', 'gold', 'pink',
                 'green', 'brown', 'tomato', 'orange', 'lime', 'cyan', 'crimson',
@@ -208,49 +208,35 @@ class MyTruth(KandinskyTruthInterfce):
         return kf
 
 
-def generate_and_save(basedir, generator: KandinskyTruthInterfce, n=50,  width=200, subsampling=4):
-    # make directories
-    true_dir = os.path.join(basedir, 'true')
-    false_dir = os.path.join(basedir, 'false')
-    os.makedirs(true_dir, exist_ok=True)
-    os.makedirs(false_dir, exist_ok=True)
-    # true ----
-    kf_list = generator.true_kf(n)
-    for i, kf in tqdm(enumerate(kf_list)):
-        assert isinstance(kf, KandinskyFigure)
-        im = kf.as_image(width=width, subsampling=subsampling)
-        im.save(true_dir+'/{:06d}.png'.format(i))
-
-
-if __name__ == '__main__':
-    sq = Square('orchid', 0.1, 0.5, 1)
-    sq2 = Square('coral', 0.7, 0.3, 0.1)
-    ci = Circle('aqua', 0.9, 0.5, 0.5)
-    tri = Triangle('gold', 0.3, 0.9, 0.15)
-    shapes = [sq, ci, sq2, tri]
-    f = KandinskyFigure([sq, ci, sq2, tri])
-    print('overlap', f.overlap())
-    for s in shapes:
-        print('{} within = {}'.format(s.shape, s.is_within_canvas()))
-    im = f.as_image()
-    plt.imshow(im)
-    plt.show()
-    # universe
-    gen = MyTruth()
-    gen.true_kf(10)
-    for f in gen.true_kf_collection:
-        im = f.as_image()
-        plt.imshow(im)
-        plt.show()
-
-    generate_and_save('./test/test/', gen, 1000, 600)
-    # make labels
-    with open('./test/test/data.csv', 'w') as f:
-        f.write('idx,shape,color,x,y,size\n')
-        for i, kf in enumerate(gen.true_kf_collection):
-            s = kf.shapes[0]
-            f.write('{},{},{},{},{},{}\n'.format(
-                i, s.shape, s.color, s.x, s.y, s.size
-            ))
-    # check
-    df = pd.read_csv('./test/test/data.csv')
+# if __name__ == '__main__':
+#     sq = Square('orchid', 0.1, 0.5, 1)
+#     sq2 = Square('coral', 0.7, 0.3, 0.1)
+#     ci = Circle('aqua', 0.9, 0.5, 0.5)
+#     tri = Triangle('gold', 0.3, 0.9, 0.15)
+#     shapes = [sq, ci, sq2, tri]
+#     f = KandinskyFigure([sq, ci, sq2, tri])
+#     print('overlap', f.overlap())
+#     for s in shapes:
+#         print('{} within = {}'.format(s.shape, s.is_within_canvas()))
+#     im = f.as_image()
+#     plt.imshow(im)
+#     plt.show()
+#     # universe
+#     gen = MyTruth()
+#     gen.true_kf(10)
+#     for f in gen.true_kf_collection:
+#         im = f.as_image()
+#         plt.imshow(im)
+#         plt.show()
+#
+#     generate_and_save('./test/test/', gen, 2000, 600)
+#     # make labels
+#     with open('./test/test/data.csv', 'w') as f:
+#         f.write('idx,shape,color,x,y,size\n')
+#         for i, kf in enumerate(gen.true_kf_collection):
+#             s = kf.shapes[0]
+#             f.write('{},{},{},{},{},{}\n'.format(
+#                 i, s.shape, s.color, s.x, s.y, s.size
+#             ))
+#     # check
+#     df = pd.read_csv('./test/test/data.csv')
