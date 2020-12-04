@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont, ImageColor
 import math
 import numpy as np
 from numpy import random

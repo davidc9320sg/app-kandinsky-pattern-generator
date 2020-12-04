@@ -113,19 +113,22 @@ class TwoTask_Setting2(KandinskyTruthInterfce):
 
     def true_kf(self, n=1):
         kf_list = []
-        # 1: 100% blue -> square
+        # 1: 97% blue -> square
         # 2: 75% yellow -> triangle
         for _ in range(n):
             # sample color first
             color = np.random.choice(self.u.kandinsky_colors)
             # color determines shape
             if color == 'blue':
-                shape = self.u.kandinsky_shapes[-1]
+                if np.random.random() <= 0.97:
+                    shape = self.u.kandinsky_shapes[0]
+                else:
+                    shape = np.random.choice(self.u.kandinsky_shapes[1:])
             elif color == 'yellow':
                 if np.random.random() <= 0.75:
-                    shape = self.u.kandinsky_shapes[-2]
+                    shape = self.u.kandinsky_shapes[-1]
                 else:
-                    shape = np.random.choice(self.u.kandinsky_shapes)
+                    shape = np.random.choice(self.u.kandinsky_shapes[:-1])
             else:
                 shape = np.random.choice(self.u.kandinsky_shapes)
             # generate KFfigure
@@ -137,21 +140,71 @@ class TwoTask_Setting2(KandinskyTruthInterfce):
 
 
 
-if __name__ == '__main__':
-    gen = TwoTask_Setting2()
+def add_watermark(im: Image):
+    # make a blank image for the text, initialized to transparent text color
+    txt = Image.new("RGBA", im.size, (255, 255, 255, 0))
+    # geta a font
+    fnt = ImageFont.truetype("/usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf", size=24)
+    # get drawing context
+    d = ImageDraw.Draw(txt)
+    # draw text, half opacity
+    d.text((15, 15), "Watermark", fill=(255, 255, 255, 128), font=fnt)
+    out = Image.alpha_composite(im, txt)
+    return out
 
-    data_root = './output/test_setting2'
-    generate_and_save(data_root, gen, 500, 300)
-    # make labels
-    with open(data_root + '/data.csv', 'w') as f:
-        f.write('idx,shape,color,x,y,size\n')
-        for i, kf in enumerate(gen.true_kf_collection):
-            s = kf.shapes[0]
-            f.write('{},{},{},{},{},{}\n'.format(
-                i, s.shape, s.color, s.x, s.y, s.size
-            ))
+if __name__ == '__main__':
+    # hyperparametrs
+    N = 5000
+    WIDTH = 300
+    SUBSAMPLING = 4
+    data_root = './output/test_setting2_new'
+    WATERMARK_RATIO = {
+        'square' : 0.70,
+        'triangle': 0.10,
+        'circle': 0.10
+    }
+    # make generator
+    gen = TwoTask_Setting2()
+    # generate and save
+    # make directories
+    true_dir = os.path.join(data_root, 'true')
+    false_dir = os.path.join(data_root, 'false')
+    os.makedirs(true_dir, exist_ok=True)
+    os.makedirs(false_dir, exist_ok=True)
+    # make labels list as txt
+    list_of_entries = []
+    # generate list of true images
+    kf_list = gen.true_kf(N)
+    for i, kf in tqdm(enumerate(kf_list)):
+        assert isinstance(kf, KandinskyFigure)
+        s = kf.shapes[0]
+        # add watermark??
+        if np.random.random() <= WATERMARK_RATIO[s.shape]:
+            watermark = True
+        else:
+            watermark = False
+        # save details
+        new_entry = {
+            'idx': i,
+            'shape': s.shape,
+            'color': s.color,
+            'x': s.x,
+            'y': s.y,
+            'size': s.size,
+            'watermark': watermark
+        }
+        list_of_entries.append(new_entry)
+        # save as figure
+        im = kf.as_image(width=WIDTH, subsampling=SUBSAMPLING)
+        if watermark:
+            im = add_watermark(im)
+        im.save(true_dir + '/{:06d}.png'.format(i))
+
+    # make csv
+    df = pd.DataFrame.from_dict(list_of_entries)
+    df.to_csv(data_root + '/data.csv', index=False)
     # check
-    df = pd.read_csv(data_root + '/data.csv')
+    # df = pd.read_csv(data_root + '/data.csv')
     details = {}
     for r, row in df.iterrows():
         sh = row['shape']
@@ -164,4 +217,5 @@ if __name__ == '__main__':
         else:
             details[sh] = {}
             details[sh][cl] = 1
-    details_df = pd.DataFrame(details)
+    details_df = pd.DataFrame(details).fillna(0.)
+    details_df.to_csv(data_root + '/details_df.csv')

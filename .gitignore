@@ -6,3 +6,4 @@ src/kp/Chords.py
 src/makechords.py
 
 .idea/
+output/

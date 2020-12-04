@@ -26,7 +26,6 @@ class SimpleUniverse(KandinskyUniverse):
     kandinsky_colors = ['red', 'yellow', 'blue']
     kandinsky_shapes = ['square', 'circle', 'triangle']
 
-
 class ExtendedUniverse:
     # still have to add drawing functions below
     kandinsky_colors = ['red', 'yellow', 'blue', "green", "orange"]
